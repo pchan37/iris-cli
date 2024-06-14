@@ -9,3 +9,4 @@ name = "iris"
 
 [dependencies]
 clap = { version = "4.5.7", features = ["derive"] }
+dialoguer = "0.11.0"
