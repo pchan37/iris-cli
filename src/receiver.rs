@@ -10,7 +10,12 @@ use snafu::ResultExt;
 use crate::constants::IRIS_SECRET_ENV_VAR;
 use crate::errors::{Error, MissingPassphraseSnafu, MissingRoomIdentifierSnafu};
 
-pub fn receive(server_ip: String, port: String, conflicting_file_mode: ConflictingFileMode) {
+pub fn receive(
+    server_ip: String,
+    port: String,
+    conflicting_file_mode: ConflictingFileMode,
+    show_log: bool,
+) {
     let (worker_communication, progress_communication) = get_receiver_communication_channels();
     std::thread::spawn(move || {
         perform_task(
@@ -24,11 +29,23 @@ pub fn receive(server_ip: String, port: String, conflicting_file_mode: Conflicti
     let term = Term::stdout();
     let _ = term.clear_screen();
 
-    let bar = create_progress_bar();
-    let mut size_of_current_file = 0;
-    while let Ok(message) = worker_communication.read() {
-        if let Some(message) = message {
-            handle_receiver_progress_message(message, &bar, &mut size_of_current_file);
+    if !show_log {
+        let bar = create_progress_bar();
+        let mut size_of_current_file = 0;
+        while let Ok(message) = worker_communication.read() {
+            if let Some(message) = message {
+                handle_receiver_progress_message(message, &bar, &mut size_of_current_file);
+            }
+        }
+    } else {
+        while let Ok(message) = worker_communication.read() {
+            match message {
+                Some(ReceiverProgressMessage::Error(e)) => {
+                    eprintln!("{}", style(format!("Could not finish because of error: {e}")).red());
+                    std::process::exit(1);
+                }
+                _ => continue,
+            }
         }
     }
 }

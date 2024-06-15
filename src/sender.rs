@@ -9,7 +9,13 @@ use iris::{
 
 use crate::constants::IRIS_SECRET_ENV_VAR;
 
-pub fn send(server_ip: String, port: String, files: Vec<PathBuf>, cipher_type: CipherType) {
+pub fn send(
+    server_ip: String,
+    port: String,
+    files: Vec<PathBuf>,
+    cipher_type: CipherType,
+    show_log: bool,
+) {
     let (worker_communication, progress_communication) = get_sender_communication_channels();
     let passphrase = get_passphrase_from_str_wordlist(&WORDLIST);
     let passphrase_clone = passphrase.clone();
@@ -27,11 +33,28 @@ pub fn send(server_ip: String, port: String, files: Vec<PathBuf>, cipher_type: C
     let term = Term::stdout();
     let _ = term.clear_screen();
 
-    let bar = create_progress_bar();
-    let mut size_of_current_file = 0;
-    while let Ok(message) = worker_communication.read() {
-        if let Some(message) = message {
-            handle_sender_progress_message(message, &bar, &passphrase, &mut size_of_current_file);
+    if !show_log {
+        let bar = create_progress_bar();
+        let mut size_of_current_file = 0;
+        while let Ok(message) = worker_communication.read() {
+            if let Some(message) = message {
+                handle_sender_progress_message(
+                    message,
+                    &bar,
+                    &passphrase,
+                    &mut size_of_current_file,
+                );
+            }
+        }
+    } else {
+        while let Ok(message) = worker_communication.read() {
+            match message {
+                Some(SenderProgressMessage::Error(e)) => {
+                    eprintln!("{}", style(format!("Could not finish because of error: {e}")).red());
+                    std::process::exit(1);
+                }
+                _ => continue,
+            }
         }
     }
 }
