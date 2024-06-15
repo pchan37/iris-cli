@@ -41,7 +41,10 @@ pub fn receive(
         while let Ok(message) = worker_communication.read() {
             match message {
                 Some(ReceiverProgressMessage::Error(e)) => {
-                    eprintln!("{}", style(format!("Could not finish because of error: {e}")).red());
+                    eprintln!(
+                        "{}",
+                        style(format!("Could not finish because of error: {e}")).red()
+                    );
                     std::process::exit(1);
                 }
                 _ => continue,
