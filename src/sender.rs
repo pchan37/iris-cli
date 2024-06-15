@@ -7,6 +7,7 @@ use iris::{
     SenderProgressCommunication, SenderProgressMessage, WORDLIST,
 };
 
+#[cfg(unix)]
 use crate::constants::IRIS_SECRET_ENV_VAR;
 
 pub fn send(
