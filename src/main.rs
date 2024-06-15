@@ -1,3 +1,9 @@
+mod constants;
+mod errors;
+mod receiver;
+mod sender;
+mod server;
+
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
@@ -65,17 +71,17 @@ enum Subcommands {
 fn main() {
     let args = App::parse();
     match args.subcommands {
-        Subcommands::Server { ip_address, port } => todo!(),
+        Subcommands::Server { ip_address, port } => server::serve(ip_address, port),
         Subcommands::Sender {
             server_ip,
             server_port,
             files,
             cipher_type,
-        } => todo!(),
+        } => sender::send(server_ip, server_port, files, cipher_type),
         Subcommands::Receiver {
             server_ip,
             server_port,
             conflicting_file_mode,
-        } => todo!(),
+        } => receiver::receive(server_ip, server_port, conflicting_file_mode),
     }
 }

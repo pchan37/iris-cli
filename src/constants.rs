@@ -1,0 +1,1 @@
+pub const IRIS_SECRET_ENV_VAR: &str = "IRIS_PASSPHRASE";
